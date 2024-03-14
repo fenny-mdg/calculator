@@ -26,33 +26,61 @@ function Button(props) {
   );
 }
 
-function App() {
-  const handleClick = value => {
-    console.log(value);
+const operatorLabels = ['+', '-', '*', '÷'];
+
+class App extends React.Component {
+  state = {
+    output: '0',
   };
 
-  return (
-    <div className="calculator">
-      <div className="calculator-output">0</div>
-      <div className="calculator-keys">
-        <Button className="calculator-key-operator">+</Button>
-        <Button className="calculator-key-operator">-</Button>
-        <Button className="calculator-key-operator">&times;</Button>
-        <Button className="calculator-key-operator">÷</Button>
+  handleClick = value => {
+    this.setState(oldState => ({
+      ...oldState,
+      output: `${oldState.output === '0' ? '' : oldState.output}${value}`,
+    }));
+  };
 
-        {buttonLabels.map(row =>
-          row.map(label => (
-            <Button key={label} onClick={() => handleClick(label)}>
-              {label}
+  handleReset = () => {
+    this.setState({output: '0'});
+  };
+
+  handleOperatorClick = operator => {
+    const newOutput = `${this.state.output}${operator}`;
+
+    this.setState({output: newOutput});
+  };
+
+  render() {
+    return (
+      <div className="calculator">
+        <div className="calculator-output">{this.state.output}</div>
+        <div className="calculator-keys">
+          {operatorLabels.map(operator => (
+            <Button
+              key={operator}
+              className="calculator-key-operator"
+              onClick={() => this.handleOperatorClick(operator)}
+            >
+              {operator}
             </Button>
-          )),
-        )}
-        <Button>.</Button>
-        <Button className="calculator-key-reset">AC</Button>
-        <Button className="calculator-key-enter">=</Button>
+          ))}
+
+          {buttonLabels.map(row =>
+            row.map(label => (
+              <Button key={label} onClick={() => this.handleClick(label)}>
+                {label}
+              </Button>
+            )),
+          )}
+          <Button>.</Button>
+          <Button className="calculator-key-reset" onClick={this.handleReset}>
+            AC
+          </Button>
+          <Button className="calculator-key-enter">=</Button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 ReactDOM.createRoot(root).render(<App />);
