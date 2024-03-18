@@ -17,37 +17,59 @@ const buttonLabels = chunckArray(
 ).map(chunck => chunck.reverse());
 
 function Button(props) {
-  const {className, children, onClick = () => {}} = props;
+  const {className, children, disabled = false, onClick = () => {}} = props;
 
   return (
-    <button className={`calculator-key ${className || ''}`} onClick={onClick}>
+    <button
+      className={`calculator-key ${className || ''}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
       {children}
     </button>
   );
 }
 
-const operatorLabels = ['+', '-', '*', '÷'];
+const operatorLabels = ['+', '-', '*', '/'];
 
 class App extends React.Component {
   state = {
     output: '0',
   };
 
-  handleClick = value => {
-    this.setState(oldState => ({
-      ...oldState,
-      output: `${oldState.output === '0' ? '' : oldState.output}${value}`,
-    }));
-  };
-
   handleReset = () => {
     this.setState({output: '0'});
   };
 
-  handleOperatorClick = operator => {
-    const newOutput = `${this.state.output}${operator}`;
+  handleButtonClick = value => {
+    const newOutput = `${
+      this.state.output === '0' && !Number.isNaN(value) ? '' : this.state.output
+    }${value}`;
+    const matched = newOutput.match(
+      /^\d+(.)?(.\d+)?(([\+\-\*\/])?(\d+)?(.)?(.\d+)?)+$/,
+    );
 
-    this.setState({output: newOutput});
+    if (matched) {
+      this.setState({output: newOutput});
+    }
+  };
+
+  handleComputeValue = () => {
+    if (this.state.output.match(/^\d+(.\d+)?([\+\-\*\/])?(\d+)?(.\d+)?$/)) {
+      this.setState({output: eval(this.state.output)});
+    }
+  };
+
+  getComputeValueStatus = () => {
+    switch (true) {
+      case this.state.output === '0':
+      case operatorLabels.includes(
+        this.state.output[this.state.output.length - 1],
+      ):
+        return 'disabled';
+      default:
+        return 'enabled';
+    }
   };
 
   render() {
@@ -59,7 +81,7 @@ class App extends React.Component {
             <Button
               key={operator}
               className="calculator-key-operator"
-              onClick={() => this.handleOperatorClick(operator)}
+              onClick={() => this.handleButtonClick(operator)}
             >
               {operator}
             </Button>
@@ -67,16 +89,22 @@ class App extends React.Component {
 
           {buttonLabels.map(row =>
             row.map(label => (
-              <Button key={label} onClick={() => this.handleClick(label)}>
+              <Button key={label} onClick={() => this.handleButtonClick(label)}>
                 {label}
               </Button>
             )),
           )}
-          <Button>.</Button>
+          <Button onClick={() => this.handleButtonClick('.')}>.</Button>
           <Button className="calculator-key-reset" onClick={this.handleReset}>
             AC
           </Button>
-          <Button className="calculator-key-enter">=</Button>
+          <Button
+            className="calculator-key-enter"
+            onClick={this.handleComputeValue}
+            disabled={this.getComputeValueStatus() === 'disabled'}
+          >
+            =
+          </Button>
         </div>
       </div>
     );
